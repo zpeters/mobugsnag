@@ -1,5 +1,8 @@
 # mobugsnag
+![license](https://img.shields.io/crates/l/mobugsnag)
 ![build](https://github.com/zpeters/mobugsnag/workflows/build/badge.svg)
+[![crates.io](https://img.shields.io/crates/v/mobugsnag)](https://crates.io/crates/mobugsnag)
+[![Documentation](https://docs.rs/mobugsnag/badge.svg)](https://docs.rs/mobugsnag/)
 
 My Own Bugsnag (client)
 
