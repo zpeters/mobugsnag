@@ -1,18 +1,18 @@
-    use std::error::Error;
-     
-    pub struct Bugsnag{
-        pub apikey: String
-    }
+use std::error::Error;
 
-    impl Bugsnag {
-    fn notify(&self, level: &str, class: &str, msg: &str) -> Result<(),Box<dyn Error>> {
+pub struct Bugsnag {
+    pub apikey: String,
+}
+
+impl Bugsnag {
+    fn notify(&self, level: &str, class: &str, msg: &str) -> Result<(), Box<dyn Error>> {
         let resp = ureq::post("http://notify.bugsnag.com/")
             .set("Content-Type", "application/json")
             .set("Bugsnag-Api-Key", &self.apikey)
             .set("Bugsnag-Payload-Version", "5")
             .send_json(ureq::json!({
                 "notifier": {
-                    "name": "My Test Notifier",
+                    "name": "mob - my own bugsnag",
                     "version": "0.0.1",
                     "url": "http://bcianswers.com"
                 },
@@ -28,14 +28,14 @@
             }));
         match resp {
             Ok(_) => Ok(()),
-            Err(e) => return Err(Box::new(e)),
+            Err(e) => Err(Box::new(e)),
         }
     }
 
-    pub fn info(&self, class: &str, msg: &str) -> Result<(),Box<dyn Error>> {
+    pub fn info(&self, class: &str, msg: &str) -> Result<(), Box<dyn Error>> {
         self.notify("info", class, msg)
     }
-    pub fn error(&self, class: &str, msg: &str) -> Result<(),Box<dyn Error>> {
+    pub fn error(&self, class: &str, msg: &str) -> Result<(), Box<dyn Error>> {
         self.notify("error", class, msg)
     }
-    }
+}
