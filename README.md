@@ -1,5 +1,5 @@
-# mob
-![build](https://github.com/zpeters/mob/workflows/build/badge.svg)
+# mobugsnag
+![build](https://github.com/zpeters/mobugsnag/workflows/build/badge.svg)
 
 My Own Bugsnag (client)
 

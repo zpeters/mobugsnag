@@ -48,13 +48,13 @@ impl fmt::Debug for BugsnagError {
 ///
 /// ## Informational message
 /// ```
-/// use mob::Bugsnag;
+/// use mobugsnag::Bugsnag;
 /// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
 /// snag.info("My Class", "My actual Message").unwrap();
 /// ```
 /// ## Error message
 /// ```
-/// use mob::Bugsnag;
+/// use mobugsnag::Bugsnag;
 /// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
 /// snag.error("An Error Type", "My error message").unwrap();
 /// ```
@@ -73,7 +73,7 @@ impl Bugsnag {
             .set("Bugsnag-Payload-Version", "5")
             .send_json(ureq::json!({
                 "notifier": {
-                    "name": "mob - my own bugsnag",
+                    "name": "mobugsnag - my own bugsnag",
                     "version": "0.0.1",
                     "url": "http://bcianswers.com"
                 },
