@@ -1,6 +1,38 @@
 //! This is my beginning of a crate for Bugsnag alerting
 //! right now it is very minimal and just for my testing use.
-use std::error::Error;
+use std::fmt;
+
+/// The Bugsnag api specifies that requests are processed asynchornously.
+/// Therefore, a 'bad' request does not necessarily return an error status
+/// Errors returned from the api are likely formatting, structure or low-level
+/// network issues
+pub struct BugsnagError {
+    /// Default of 0, future use
+    code: usize,
+    message: String,
+}
+
+/// Implement std::fmt::Display for AppError
+impl fmt::Display for BugsnagError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let err_msg = match self.code {
+            0 => "An error occured posting to bugsnag",
+            _ => "Some unknown error occured",
+        };
+        write!(f, "{}", err_msg)
+    }
+}
+
+/// Implement std::fmt::Debug for AppError
+impl fmt::Debug for BugsnagError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "BugsnagError {{ code: {}, message: {} }}",
+            self.code, self.message
+        )
+    }
+}
 
 /// Bugsnag is the main struct, we create a new struct and can
 /// send an "Info" or "Alert".  This is just a different severity
@@ -14,18 +46,17 @@ use std::error::Error;
 /// [`documentation`]: https://bugsnagerrorreportingapi.docs.apiary.io/#reference/0/notify/send-error-reports
 /// # Examples
 ///
-/// ## Setup
-/// ```
-/// use mob::Bugsnag;
-/// let snag = Bugsnag{apikey: "MYAPIKEY"};
-/// ```
 /// ## Informational message
 /// ```
-/// snag.info("My Class", "My actual Message")
+/// use mob::Bugsnag;
+/// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
+/// snag.info("My Class", "My actual Message").unwrap();
 /// ```
 /// ## Error message
 /// ```
-/// snag.error("An Error Type", "My error message")
+/// use mob::Bugsnag;
+/// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
+/// snag.error("An Error Type", "My error message").unwrap();
 /// ```
 pub struct Bugsnag {
     /// Your bugsnag project api key. See [`here`] for details on generating it
@@ -35,7 +66,7 @@ pub struct Bugsnag {
 }
 
 impl Bugsnag {
-    fn notify(&self, level: &str, class: &str, msg: &str) -> Result<(), Box<dyn Error>> {
+    fn notify(&self, level: &str, class: &str, msg: &str) -> Result<(), BugsnagError> {
         let resp = ureq::post("http://notify.bugsnag.com/")
             .set("Content-Type", "application/json")
             .set("Bugsnag-Api-Key", &self.apikey)
@@ -58,14 +89,17 @@ impl Bugsnag {
             }));
         match resp {
             Ok(_) => Ok(()),
-            Err(e) => Err(Box::new(e)),
+            Err(e) => Err(BugsnagError {
+                code: 0,
+                message: format!("{:?}", e),
+            }),
         }
     }
 
-    pub fn info(&self, class: &str, msg: &str) -> Result<(), Box<dyn Error>> {
+    pub fn info(&self, class: &str, msg: &str) -> Result<(), BugsnagError> {
         self.notify("info", class, msg)
     }
-    pub fn error(&self, class: &str, msg: &str) -> Result<(), Box<dyn Error>> {
+    pub fn error(&self, class: &str, msg: &str) -> Result<(), BugsnagError> {
         self.notify("error", class, msg)
     }
 }
