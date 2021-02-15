@@ -2,11 +2,11 @@
 //! right now it is very minimal and just for my testing use.
 use std::error::Error;
 
-/// Bugsnag is the main struct, we create a new struct and can 
+/// Bugsnag is the main struct, we create a new struct and can
 /// send an "Info" or "Alert".  This is just a different severity
 /// level
 ///
-/// In an info or error the `class` is at type or grouping for messages (see the [`documentation`]).  You can 
+/// In an info or error the `class` is at type or grouping for messages (see the [`documentation`]).  You can
 /// think of this as a 'context' or just a way to group relevant errors
 ///
 /// The message is your alerting details.
