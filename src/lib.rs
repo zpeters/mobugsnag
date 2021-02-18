@@ -1,6 +1,31 @@
 //! This is my beginning of a crate for Bugsnag alerting
 //! right now it is very minimal and just for my testing use.
 use std::fmt;
+use std::fmt::Display;
+
+/// A Bugsnag event has three severity levels, defined as follows:
+/// error - The default for unhandled errors.
+/// warning - The default when Bugsnag.notify is called.
+/// info - Can be used in manual Bugsnag.notify calls
+///
+/// In our library the severity level is just based on what function
+/// the user chooses
+enum SeverityLevel {
+    Error,
+    Warning,
+    Info,
+}
+
+/// Converts our SeverityLevel enum to the expected string
+impl Display for SeverityLevel {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        match *self {
+            SeverityLevel::Error => f.write_str("error"),
+            SeverityLevel::Warning => f.write_str("warning"),
+            SeverityLevel::Info => f.write_str("info"),
+        }
+    }
+}
 
 /// The Bugsnag api specifies that requests are processed asynchornously.
 /// Therefore, a 'bad' request does not necessarily return an error status
@@ -34,10 +59,6 @@ impl fmt::Debug for BugsnagError {
     }
 }
 
-/// Bugsnag is the main struct, we create a new struct and can
-/// send an "Info" or "Alert".  This is just a different severity
-/// level
-///
 /// In an info or error the `class` is at type or grouping for messages (see the [`documentation`]).  You can
 /// think of this as a 'context' or just a way to group relevant errors
 ///
@@ -52,6 +73,14 @@ impl fmt::Debug for BugsnagError {
 /// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
 /// snag.info("My Class", "My actual Message").unwrap();
 /// ```
+///
+/// ## Warning message
+/// ```
+/// use mobugsnag::Bugsnag;
+/// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
+/// snag.warning("My Class", "My actual Message").unwrap();
+/// ```
+///
 /// ## Error message
 /// ```
 /// use mobugsnag::Bugsnag;
@@ -66,7 +95,7 @@ pub struct Bugsnag {
 }
 
 impl Bugsnag {
-    fn notify(&self, level: &str, class: &str, msg: &str) -> Result<(), BugsnagError> {
+    fn notify(&self, level: SeverityLevel, class: &str, msg: &str) -> Result<(), BugsnagError> {
         let resp = ureq::post("http://notify.bugsnag.com/")
             .set("Content-Type", "application/json")
             .set("Bugsnag-Api-Key", &self.apikey)
@@ -85,7 +114,7 @@ impl Bugsnag {
                     }
                 ]}
                 ],
-                "severity": level
+                "severity": level.to_string()
             }));
         match resp {
             Ok(_) => Ok(()),
@@ -97,9 +126,28 @@ impl Bugsnag {
     }
 
     pub fn info(&self, class: &str, msg: &str) -> Result<(), BugsnagError> {
-        self.notify("info", class, msg)
+        self.notify(SeverityLevel::Info, class, msg)
+    }
+    pub fn warning(&self, class: &str, msg: &str) -> Result<(), BugsnagError> {
+        self.notify(SeverityLevel::Warning, class, msg)
     }
     pub fn error(&self, class: &str, msg: &str) -> Result<(), BugsnagError> {
-        self.notify("error", class, msg)
+        self.notify(SeverityLevel::Error, class, msg)
+    }
+}
+
+/// Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn severity_levels() {
+        let s1 = SeverityLevel::Error;
+        let s2 = SeverityLevel::Warning;
+        let s3 = SeverityLevel::Info;
+        assert_eq!(format!("{}", s1), "error");
+        assert_eq!(format!("{}", s2), "warning");
+        assert_eq!(format!("{}", s3), "info");
     }
 }
