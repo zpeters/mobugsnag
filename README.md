@@ -8,8 +8,6 @@ My Own Bugsnag (client)
 
 This is just my little bugsnag "library" for learning how rust crates and libraries work
 
-
-
 ## To Implement
 https://docs.bugsnag.com/api/error-reporting/#library-configuration
 
