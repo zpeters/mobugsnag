@@ -1,5 +1,7 @@
 //! This is my beginning of a crate for Bugsnag alerting
 //! right now it is very minimal and just for my testing use.
+//!
+//! See [Client] for examples
 use std::fmt;
 use std::fmt::Display;
 
@@ -15,7 +17,6 @@ enum SeverityLevel {
     Warning,
     Info,
 }
-
 /// Converts our SeverityLevel enum to the expected string
 impl Display for SeverityLevel {
     fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
@@ -59,46 +60,53 @@ impl fmt::Debug for BugsnagError {
     }
 }
 
-/// In an info or error the `class` is at type or grouping for messages (see the [`documentation`]).  You can
-/// think of this as a 'context' or just a way to group relevant errors
+/// The [Client] is our connection to the bugsnag api.  This uses the builder pattern for configuration.
+/// See examples below.
 ///
-/// The message is your alerting details.
+/// # API Documentation
 ///
-/// [`documentation`]: https://bugsnagerrorreportingapi.docs.apiary.io/#reference/0/notify/send-error-reports
+/// <https://bugsnagerrorreportingapi.docs.apiary.io/#reference/0/notify/send-error-reports>
+///
+///
 /// # Examples
 ///
 /// ## Informational message
 /// ```
-/// use mobugsnag::Bugsnag;
-/// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
+/// use mobugsnag::Client;
+/// let snag = Client::new("MYAPIKEY".to_string()).build();
 /// snag.info("My Class", "My actual Message").unwrap();
 /// ```
 ///
 /// ## Warning message
 /// ```
-/// use mobugsnag::Bugsnag;
-/// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
+/// use mobugsnag::Client;
+/// let snag = Client::new("MYAPIKEY".to_string()).build();
 /// snag.warning("My Class", "My actual Message").unwrap();
 /// ```
 ///
 /// ## Error message
 /// ```
-/// use mobugsnag::Bugsnag;
-/// let snag = Bugsnag{apikey: "MYAPIKEY".to_string()};
+/// use mobugsnag::Client;
+/// let snag = Client::new("MYAPIKEY".to_string()).build();
 /// snag.error("An Error Type", "My error message").unwrap();
 /// ```
-pub struct Bugsnag {
-    /// Your bugsnag project api key. See [`here`] for details on generating it
-    ///
-    /// [`here`]: https://docs.bugsnag.com/product/getting-started/
-    pub apikey: String,
+#[derive(Debug, PartialEq)]
+pub struct Client {
+    api_key: String,
 }
-
-impl Bugsnag {
+impl Client {
+    pub fn new(api_key: String) -> Self {
+        Client { api_key }
+    }
+    pub fn build(&self) -> Self {
+        Client {
+            api_key: self.api_key.to_owned(),
+        }
+    }
     fn notify(&self, level: SeverityLevel, class: &str, msg: &str) -> Result<(), BugsnagError> {
         let resp = ureq::post("http://notify.bugsnag.com/")
             .set("Content-Type", "application/json")
-            .set("Bugsnag-Api-Key", &self.apikey)
+            .set("Bugsnag-Api-Key", &self.api_key)
             .set("Bugsnag-Payload-Version", "5")
             .send_json(ureq::json!({
                 "notifier": {
@@ -124,7 +132,6 @@ impl Bugsnag {
             }),
         }
     }
-
     pub fn info(&self, class: &str, msg: &str) -> Result<(), BugsnagError> {
         self.notify(SeverityLevel::Info, class, msg)
     }
@@ -149,5 +156,15 @@ mod tests {
         assert_eq!(format!("{}", s1), "error");
         assert_eq!(format!("{}", s2), "warning");
         assert_eq!(format!("{}", s3), "info");
+    }
+
+    #[test]
+    fn test_basic_client() {
+        let input_api_key = String::from("this is my api key");
+        let expected = String::from("this is my api key");
+
+        let result = Client::new(input_api_key).build();
+
+        assert_eq!(result.api_key, expected);
     }
 }
