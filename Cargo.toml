@@ -14,4 +14,4 @@ keywords = ["learning", "bugsnag"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ureq = { "version" = "2.0.1", "features" = ["json"] }
+ureq = { "version" = "2.1.1", "features" = ["json"] }
